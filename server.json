@@ -1,0 +1,47 @@
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+
+const app = express();
+
+// सर्व वेबसाईटवरून येणाऱ्या रिक्वेस्टला परवानगी देण्यासाठी (CORS Error टाळण्यासाठी)
+app.use(cors());
+app.use(express.json());
+
+// API Route: /check-wa?mobile=919881176437
+app.get('/check-wa', async (req, res) => {
+    const mobile = req.query.mobile;
+
+    if (!mobile || mobile.length < 10) {
+        return res.status(400).json({ error: 'योग्य मोबाईल नंबर देणे आवश्यक आहे.' });
+    }
+
+    try {
+        console.log(`Checking number: ${mobile}`);
+
+        /* 
+          महत्त्वाची टीप: 
+          १००% ऑटोमॅटिक चेक करण्यासाठी येथे तुम्हाला Meta Cloud API (Official) 
+          किंवा Green API / UltraMsg ची लिंक (Token सोबत) जोडावी लागेल.
+          
+          उदा. const apiRes = await axios.get(`https://api.green-api.com/waInstanceYOUR_ID/checkWhatsapp/${mobile}`);
+        */
+
+        // सध्या टेस्टिंग आणि सेटअप यशस्वी झाला की नाही हे पाहण्यासाठी आपण रिस्पॉन्स पाठवूया:
+        res.json({
+            mobile: mobile,
+            exists: true, // API जोडल्यावर येथे खरा स्टेटस (true/false) येईल
+            message: "API यशस्वीपणे काम करत आहे!"
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'सर्व्हर एरर आला आहे!' });
+    }
+});
+
+// Render साठी पोर्ट सेट करणे
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`✔ Server is running on port ${PORT}`);
+});
