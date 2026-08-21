@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Excel Tablet Extractor</title>
+    <!-- SheetJS Library for Excel Parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* CSS3 Styling & Tablet Landscape Layout */
+        :root {
+            --primary-blue: #2563eb;
+            --primary-blue-dark: #1d4ed8;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --emerald-500: #10b981;
+            --emerald-600: #059669;
+            --emerald-400: #34d399;
+            --text-main: #334155;
+            --text-light: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--slate-100);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Tablet Landscape Container */
+        .tablet-container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 1200px;
+            height: 90vh;
+            min-height: 600px;
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            border: 12px solid var(--slate-800);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        /* Tablet Front Camera/Bezel Detail */
+        .camera-hole {
+            position: absolute;
+            top: 50%;
+            left: -6px;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background-color: #000;
+            border-radius: 50%;
+            box-shadow: inset 0 0 2px rgba(255,255,255,0.2);
+            z-index: 100;
+        }
+
+        /* App Header */
+        .app-header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        .header-title h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+        .header-title p { font-size: 12px; color: #bfdbfe; margin-top: 2px; font-weight: 500; }
+        .header-actions { display: flex; gap: 12px; }
+
+        /* Split Pane Content Area */
+        .split-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        @media (min-width: 768px) {
+            .split-layout {
+                flex-direction: row;
+            }
+        }
+
+        /* Panes */
+        .pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            height: 100%;
+            overflow: hidden;
+        }
+        .input-pane {
+            background-color: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            flex: 0.8; 
+        }
+        .result-pane {
+            background-color: var(--slate-50);
+            position: relative;
+            flex: 1.2; 
+        }
+
+        /* Input Section Elements */
+        .pane-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 12px;
+        }
+        .pane-header label { font-size: 15px; font-weight: 700; color: var(--slate-800); }
+        .clear-btn {
+            background: none; border: none; color: var(--primary-blue);
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.2s;
+        }
+        .clear-btn:active { opacity: 0.6; }
+
+        /* File Upload & Sheet Select UI */
+        .file-upload-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        .file-upload-box label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--slate-800);
+        }
+        .file-input {
+            font-size: 12px;
+        }
+        .sheet-select {
+            display: none;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 13px;
+            color: var(--slate-800);
+            outline: none;
+        }
+        .sheet-select:focus { border-color: var(--primary-blue); }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            background-color: var(--slate-50);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 12px;
+            font-family: monospace;
+            color: var(--text-main);
+            outline: none;
+            resize: none;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+            white-space: pre;
+        }
+        textarea:focus { border-color: var(--primary-blue); background-color: #ffffff; }
+
+        /* Buttons */
+        .btn-main {
+            width: 100%;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        .btn-main:active { transform: scale(0.98); background-color: var(--primary-blue-dark); }
+        .btn-main svg { width: 20px; height: 20px; margin-right: 8px; }
+
+        /* Result Section Elements */
+        .placeholder-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-light);
+            text-align: center;
+        }
+        .placeholder-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+        
+        .active-result-state {
+            flex: 1;
+            display: none; 
+            flex-direction: column;
+            height: 100%;
+        }
+        .active-result-state.visible { display: flex; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .stats-badge {
+            background-color: #d1fae5; color: #047857; font-size: 11px;
+            font-weight: 900; padding: 4px 10px; border-radius: 6px; text-transform: uppercase;
+        }
+
+        .result-box {
+            flex: 1;
+            width: 100%;
+            background-color: var(--slate-900);
+            color: var(--emerald-400);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-family: monospace;
+            overflow: auto;
+            white-space: pre;
+            border: 2px solid var(--slate-800);
+            margin-bottom: 16px;
+        }
+
+        /* Action Buttons (Copy/Export) */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-copy { background-color: #e2e8f0; color: var(--slate-800); }
+        .btn-copy:active { background-color: #cbd5e1; }
+        .btn-export {
+            background-color: var(--emerald-500); color: white;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+        }
+        .btn-export:active { transform: scale(0.96); background-color: var(--emerald-600); }
+        .btn-action svg { width: 18px; height: 18px; margin-right: 8px; }
+
+        /* App Footer */
+        .app-footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 11px;
+            color: var(--text-light);
+            background-color: var(--slate-50);
+            border-top: 1px solid #e2e8f0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--slate-800);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 50;
+            white-space: nowrap;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <!-- Tablet Container -->
+    <div class="tablet-container">
+        <div class="camera-hole"></div>
+        
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="header-title">
+                <h1>Excel Extractor</h1>
+                <p>Tablet Workspace Edition</p>
+            </div>
+            <div class="header-actions">
+                <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">v4.0 - Pro Max</span>
+            </div>
+        </header>
+
+        <!-- Split Layout Area -->
+        <div class="split-layout">
+            
+            <!-- Left Pane: Input -->
+            <div class="pane input-pane">
+                <div class="pane-header">
+                    <label>Data Input</label>
+                    <button class="clear-btn" onclick="resetAll()">Clear All</button>
+                </div>
+                
+                <!-- File Upload & Sheet Selector Box -->
+                <div class="file-upload-box">
+                    <label for="excelFile">Upload Excel File (.xlsx, .xls, .xlsb)</label>
+                    <input type="file" id="excelFile" class="file-input" accept=".xlsx, .xls, .xlsb, .csv" />
+                    
+                    <select id="sheetSelect" class="sheet-select">
+                        <option value="">-- Select Sheet --</option>
+                    </select>
+                </div>
+
+                <textarea 
+                    id="excelInput" 
+                    placeholder="Headers aur model rows wala Excel data yahan paste karein ya upar file upload karein..." 
+                ></textarea>
+                
+                <button class="btn-main" onclick="processLogic()">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Process All Charts
+                </button>
+            </div>
+
+            <!-- Right Pane: Result -->
+            <div class="pane result-pane">
+                
+                <!-- Placeholder (when empty) -->
+                <div id="placeholderState" class="placeholder-state">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--slate-800); margin-bottom: 4px;">No Data Yet</h3>
+                    <p style="font-size: 12px;">Upload file or paste your data on the left and click Process.</p>
+                </div>
+
+                <!-- Active Result (when processed) -->
+                <div id="activeResultState" class="active-result-state">
+                    <div class="pane-header">
+                        <label style="font-size: 13px;">Format: CAT | BRAND | MODEL | MRP | TENURE | ADV EMI | DBD | CPF | VALIDITY | LOCATION</label>
+                        <span id="stats" class="stats-badge"></span>
+                    </div>
+                    
+                    <div id="finalResult" class="result-box"></div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-action btn-copy" onclick="copyToClipboard()">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            Copy Text
+                        </button>
+                        <button class="btn-action btn-export" onclick="exportToExcel()">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Download Excel
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- App Footer -->
+        <footer class="app-footer">
+            crafted by THE_LAKSHYA
+        </footer>
+
+        <!-- App Toast Notification -->
+        <div id="toast" class="toast">Message</div>
+
+    </div>
+
+    <script>
+        let globalRows = []; 
+        let globalWorkbook = null; 
+        const headers = ["CATEGORY", "BRAND", "MODEL", "MRP", "TOTAL TENURE", "ADVANCE EMI", "DBD", "CPF", "VALIDITY", "LOCATION"];
+        let toastTimeout;
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                globalWorkbook = XLSX.read(data, {type: 'array'});
+                
+                const sheetSelect = document.getElementById('sheetSelect');
+                sheetSelect.innerHTML = '<option value="">-- Select Sheet --</option>';
+                
+                globalWorkbook.SheetNames.forEach(sheetName => {
+                    const option = document.createElement('option');
+                    option.value = sheetName;
+                    option.textContent = sheetName;
+                    sheetSelect.appendChild(option);
+                });
+                
+                sheetSelect.style.display = 'block';
+                showToast("File Loaded! Please select a Sheet.");
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        document.getElementById('sheetSelect').addEventListener('change', function(e) {
+            const sheetName = e.target.value;
+            if (!sheetName || !globalWorkbook) return;
+
+            const worksheet = globalWorkbook.Sheets[sheetName];
+            const csvData = XLSX.utils.sheet_to_csv(worksheet, {FS: "\t"}); 
+            
+            document.getElementById('excelInput').value = csvData;
+            showToast("Sheet data imported! Click Process Data.");
+        });
+
+        function processLogic() {
+            const input = document.getElementById('excelInput').value.trim();
+            if (!input) {
+                showToast("Please paste data or upload a file!");
+                return;
+            }
+
+            const rawData = input.split('\n').map(r => r.split('\t'));
+            globalRows = [];
+
+            // STATE VARIABLES (Updates dynamically as it scans downwards)
+            let currentDbdRow = [];
+            let currentCpfRow = [];
+            let currentValidityRow = [];
+            let currentLocationRow = [];
+            let currentTenureRow = []; // This stores the actual 12/4, 10/0 headers
+            
+            let catColIdx = -1;
+            let brandColIdx = -1;
+            let modelNameColIdx = -1;
+            let mrpColIdx = -1;
+            let withMrpColIdx = -1;
+            let isDataSection = false;
+
+            for (let i = 0; i < rawData.length; i++) {
+                const row = rawData[i];
+                if (!row || row.length === 0) continue;
+
+                const upRow = row.map(c => (c || "").toString().toUpperCase().trim());
+
+                // 1. DYNAMIC METADATA TRACKING (Updates per chart)
+                if (upRow.includes('DBD')) { currentDbdRow = row; continue; }
+                if (upRow.includes('CPF') || upRow.includes('PF')) { currentCpfRow = row; continue; }
+                if (upRow.includes('VALIDITY')) { currentValidityRow = row; continue; }
+                if (upRow.includes('LOCATION')) { currentLocationRow = row; continue; }
+
+                // 2. HEADER ROW DETECTION (Matches 'MODEL' and 'MANUFACTURER' or 'MRP')
+                const hasModel = upRow.some(c => c.includes('MODEL'));
+                const hasBrandOrMrp = upRow.some(c => c.includes('MANUFACTURER') || c.includes('OEM') || c.includes('BRAND') || c.includes('MRP'));
+                
+                if (hasModel && hasBrandOrMrp && !upRow.includes('SFDC CODE')) {
+                    // We found a new chart's header!
+                    currentTenureRow = row; // Tenure headers like 12/4 sit on this very row in LG files
+                    
+                    catColIdx = upRow.findIndex(c => c.includes('CATEGORY') || c === 'CAT');
+                    brandColIdx = upRow.findIndex(c => c.includes('MANUFACTURER') || c.includes('OEM') || c.includes('BRAND'));
+                    
+                    modelNameColIdx = upRow.findIndex(c => c.includes('MODEL NAME') || c === 'MODEL');
+                    if (modelNameColIdx === -1) modelNameColIdx = upRow.findIndex(c => c.includes('MODEL'));
+                    
+                    mrpColIdx = upRow.findIndex(c => c === 'MRP');
+                    withMrpColIdx = upRow.findIndex(c => c.includes('WITH MRP') || c === 'M_NAME');
+                    
+                    isDataSection = true;
+                    continue; 
+                }
+
+                // 3. DATA ROW PROCESSING
+                if (isDataSection) {
+                    if (modelNameColIdx === -1 || !row[modelNameColIdx]) continue;
+
+                    const modelRaw = row[modelNameColIdx].toString().trim();
+                    
+                    // Skip empty rows or repeated headers
+                    if (!modelRaw || modelRaw.toUpperCase() === 'NIL' || modelRaw.toUpperCase().includes('MODEL')) continue;
+
+                    const catVal = (catColIdx !== -1 && row[catColIdx]) ? row[catColIdx].toString().trim() : "";
+                    const brandVal = (brandColIdx !== -1 && row[brandColIdx]) ? row[brandColIdx].toString().trim() : "";
+                    const mrpVal = (mrpColIdx !== -1 && row[mrpColIdx]) ? row[mrpColIdx].toString().trim() : "";
+                    
+                    let finalModel = modelRaw;
+                    if (withMrpColIdx !== -1 && row[withMrpColIdx]) {
+                        const wMrp = row[withMrpColIdx].toString().trim();
+                        if (wMrp) finalModel = wMrp;
+                    }
+                    if (mrpVal && !finalModel.includes(mrpVal)) {
+                        finalModel = `${finalModel} ${mrpVal}`.trim();
+                    }
+
+                    // Start searching for "Y" after all text columns
+                    let maxMetaCol = Math.max(0, modelNameColIdx);
+                    if (catColIdx > maxMetaCol) maxMetaCol = catColIdx;
+                    if (brandColIdx > maxMetaCol) maxMetaCol = brandColIdx;
+                    if (mrpColIdx > maxMetaCol) maxMetaCol = mrpColIdx;
+                    if (withMrpColIdx > maxMetaCol) maxMetaCol = withMrpColIdx;
+
+                    const searchStartIndex = maxMetaCol + 1;
+                    
+                    // Look for 'Y' under scheme columns
+                    for (let j = searchStartIndex; j < row.length; j++) {
+                        const cell = row[j] ? row[j].toString().trim().toUpperCase() : "";
+                        
+                        if (cell === "YES" || cell === "Y") {
+                            
+                            const schemeStr = (currentTenureRow[j] || "").toString().trim();
+                            let tenure = "";
+                            let adv = "";
+                            
+                            // Splitting tenure logic (e.g. 15/4 or Fixed EMI 2999/1)
+                            if (schemeStr) {
+                                if (schemeStr.includes('/') || schemeStr.includes('|')) {
+                                    if (schemeStr.toUpperCase().includes('FIXED EMI')) {
+                                        tenure = schemeStr; // Keep full text
+                                        adv = "";
+                                    } else {
+                                        let parts = schemeStr.split(/[|\/]/);
+                                        tenure = parts[0] ? parts[0].trim() : "";
+                                        adv = parts[1] ? parts[1].trim() : "";
+                                    }
+                                } else {
+                                    tenure = schemeStr;
+                                }
+                            }
+
+                            // Pull matching metadata using the EXACT column index (j)
+                            let dbd = (currentDbdRow[j] || "").toString().trim().replace(/%/g, '');
+                            let cpf = (currentCpfRow[j] || "").toString().trim();
+                            let validity = (currentValidityRow[j] || "").toString().trim();
+                            let loc = (currentLocationRow[j] || "").toString().trim();
+
+                            const clean = (val) => (val.toUpperCase() === 'NIL' || val.toUpperCase() === 'NA') ? '0' : val;
+
+                            globalRows.push([
+                                clean(catVal),
+                                clean(brandVal),
+                                clean(finalModel),
+                                clean(mrpVal),
+                                clean(tenure),
+                                clean(adv),
+                                clean(dbd),
+                                clean(cpf),
+                                clean(validity),
+                                clean(loc)
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Output Rendering
+            const placeholder = document.getElementById('placeholderState');
+            const activeResult = document.getElementById('activeResultState');
+            const resultDiv = document.getElementById('finalResult');
+            const stats = document.getElementById('stats');
+
+            if (globalRows.length > 0) {
+                const previewText = headers.join('\t') + '\n' + globalRows.map(row => row.join('\t')).join('\n');
+                resultDiv.innerText = previewText;
+                stats.innerText = `${globalRows.length} Rows`;
+                
+                placeholder.style.display = 'none';
+                activeResult.classList.add('visible');
+                
+                showToast("All Charts Processed! Ready for Download.");
+            } else {
+                showToast("No 'YES' or 'Y' match found!");
+                placeholder.style.display = 'flex';
+                activeResult.classList.remove('visible');
+            }
+        }
+
+        function copyToClipboard() {
+            const text = headers.join('\t') + '\n' + globalRows.map(row => row.join('\t')).join('\n');
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast("Copied Data!");
+        }
+
+        function exportToExcel() {
+            if (globalRows.length === 0) return;
+
+            let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+            html += '<head><meta charset="utf-8"></head><body><table border="1">';
+            
+            html += '<tr style="background-color: #f1f5f9; font-weight: bold;">';
+            headers.forEach(h => html += `<td>${h}</td>`);
+            html += '</tr>';
+
+            globalRows.forEach(row => {
+                html += '<tr>';
+                row.forEach((cell, index) => {
+                    // Update: Index 8 is the VALIDITY column. We remove the text format override for it.
+                    if (index === 8) {
+                        html += `<td>${cell}</td>`; 
+                    } else {
+                        html += `<td style="vnd.ms-excel.numberformat:@">${cell}</td>`;
+                    }
+                });
+                html += '</tr>';
+            });
+            
+            html += '</table></body></html>';
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `MultiChart_Data_${new Date().getTime()}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast("Excel File Downloaded Successfully!");
+        }
+
+        function resetAll() {
+            document.getElementById('excelInput').value = '';
+            
+            document.getElementById('excelFile').value = '';
+            const sheetSelect = document.getElementById('sheetSelect');
+            sheetSelect.style.display = 'none';
+            sheetSelect.innerHTML = '<option value="">-- Select Sheet --</option>';
+            globalWorkbook = null;
+
+            const placeholder = document.getElementById('placeholderState');
+            const activeResult = document.getElementById('activeResultState');
+            
+            placeholder.style.display = 'flex';
+            activeResult.classList.remove('visible');
+            
+            globalRows = [];
+            showToast("Workspace Cleared");
+        }
+    </script>
+</body>
+</html>
