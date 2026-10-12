@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Excel Tablet Extractor</title>
-    <!-- SheetJS Library for Excel Parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* CSS3 Styling & Tablet Landscape Layout */
         :root {
             --primary-blue: #2563eb;
             --primary-blue-dark: #1d4ed8;
@@ -38,7 +36,6 @@
             padding: 20px;
         }
 
-        /* Tablet Landscape Container */
         .tablet-container {
             background-color: #ffffff;
             width: 100%;
@@ -55,7 +52,6 @@
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
         }
 
-        /* Tablet Front Camera/Bezel Detail */
         .camera-hole {
             position: absolute;
             top: 50%;
@@ -69,7 +65,6 @@
             z-index: 100;
         }
 
-        /* App Header */
         .app-header {
             background-color: var(--primary-blue);
             color: white;
@@ -84,7 +79,6 @@
         .header-title p { font-size: 12px; color: #bfdbfe; margin-top: 2px; font-weight: 500; }
         .header-actions { display: flex; gap: 12px; }
 
-        /* Split Pane Content Area */
         .split-layout {
             flex: 1;
             display: flex;
@@ -98,7 +92,6 @@
             }
         }
 
-        /* Panes */
         .pane {
             flex: 1;
             display: flex;
@@ -118,7 +111,6 @@
             flex: 1.2; 
         }
 
-        /* Input Section Elements */
         .pane-header {
             display: flex;
             justify-content: space-between;
@@ -133,7 +125,6 @@
         }
         .clear-btn:active { opacity: 0.6; }
 
-        /* File Upload & Sheet Select UI */
         .file-upload-box {
             display: flex;
             flex-direction: column;
@@ -183,7 +174,6 @@
         }
         textarea:focus { border-color: var(--primary-blue); background-color: #ffffff; }
 
-        /* Buttons */
         .btn-main {
             width: 100%;
             background-color: var(--primary-blue);
@@ -203,7 +193,6 @@
         .btn-main:active { transform: scale(0.98); background-color: var(--primary-blue-dark); }
         .btn-main svg { width: 20px; height: 20px; margin-right: 8px; }
 
-        /* Result Section Elements */
         .placeholder-state {
             flex: 1;
             display: flex;
@@ -245,7 +234,6 @@
             margin-bottom: 16px;
         }
 
-        /* Action Buttons (Copy/Export) */
         .action-buttons {
             display: flex;
             gap: 12px;
@@ -272,7 +260,6 @@
         .btn-export:active { transform: scale(0.96); background-color: var(--emerald-600); }
         .btn-action svg { width: 18px; height: 18px; margin-right: 8px; }
 
-        /* App Footer */
         .app-footer {
             text-align: center;
             padding: 10px;
@@ -285,7 +272,6 @@
             text-transform: uppercase;
         }
 
-        /* Toast Notification */
         .toast {
             position: absolute;
             bottom: 50px;
@@ -309,11 +295,9 @@
 </head>
 <body>
 
-    <!-- Tablet Container -->
     <div class="tablet-container">
         <div class="camera-hole"></div>
         
-        <!-- App Header -->
         <header class="app-header">
             <div class="header-title">
                 <h1>Excel Extractor</h1>
@@ -324,17 +308,14 @@
             </div>
         </header>
 
-        <!-- Split Layout Area -->
         <div class="split-layout">
             
-            <!-- Left Pane: Input -->
             <div class="pane input-pane">
                 <div class="pane-header">
                     <label>Data Input</label>
                     <button class="clear-btn" onclick="resetAll()">Clear All</button>
                 </div>
                 
-                <!-- File Upload & Sheet Selector Box -->
                 <div class="file-upload-box">
                     <label for="excelFile">Upload Excel File (.xlsx, .xls, .xlsb)</label>
                     <input type="file" id="excelFile" class="file-input" accept=".xlsx, .xls, .xlsb, .csv" />
@@ -355,17 +336,14 @@
                 </button>
             </div>
 
-            <!-- Right Pane: Result -->
             <div class="pane result-pane">
                 
-                <!-- Placeholder (when empty) -->
                 <div id="placeholderState" class="placeholder-state">
                     <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     <h3 style="font-size: 16px; font-weight: 700; color: var(--slate-800); margin-bottom: 4px;">No Data Yet</h3>
                     <p style="font-size: 12px;">Upload file or paste your data on the left and click Process.</p>
                 </div>
 
-                <!-- Active Result (when processed) -->
                 <div id="activeResultState" class="active-result-state">
                     <div class="pane-header">
                         <label style="font-size: 13px;">Format: CAT | BRAND | MODEL | MRP | TENURE | ADV EMI | DBD | CPF | VALIDITY | LOCATION</label>
@@ -389,12 +367,10 @@
             </div>
         </div>
 
-        <!-- App Footer -->
         <footer class="app-footer">
             crafted by THE_LAKSHYA
         </footer>
 
-        <!-- App Toast Notification -->
         <div id="toast" class="toast">Message</div>
 
     </div>
@@ -459,13 +435,13 @@
             const rawData = input.split('\n').map(r => r.split('\t'));
             globalRows = [];
 
-            // STATE VARIABLES (Updates dynamically as it scans downwards)
             let currentDbdRow = [];
             let currentCpfRow = [];
             let currentValidityRow = [];
             let currentLocationRow = [];
-            let currentTenureRow = []; // This stores the actual 12/4, 10/0 headers
+            let currentTenureRow = [];
             
+            let defaultBrand = "";
             let catColIdx = -1;
             let brandColIdx = -1;
             let modelNameColIdx = -1;
@@ -477,46 +453,50 @@
                 const row = rawData[i];
                 if (!row || row.length === 0) continue;
 
-                const upRow = row.map(c => (c || "").toString().toUpperCase().trim());
+                const cleanRow = row.map(c => (c || "").toString().trim());
+                const upRow = cleanRow.map(c => c.toUpperCase());
 
-                // 1. DYNAMIC METADATA TRACKING (Updates per chart)
-                if (upRow.includes('DBD')) { currentDbdRow = row; continue; }
-                if (upRow.includes('CPF') || upRow.includes('PF')) { currentCpfRow = row; continue; }
-                if (upRow.includes('VALIDITY')) { currentValidityRow = row; continue; }
-                if (upRow.includes('LOCATION')) { currentLocationRow = row; continue; }
+                const nonBlank = cleanRow.filter(c => c !== "");
+                if (nonBlank.length === 1 && !isDataSection) {
+                    const singleVal = nonBlank[0];
+                    if (['VIVO', 'OPPO', 'SAMSUNG', 'MI', 'REALME', 'ONEPLUS', 'APPLE', 'MOTOROLA', 'IQOO'].includes(singleVal.toUpperCase())) {
+                        defaultBrand = singleVal;
+                        continue;
+                    }
+                }
 
-                // 2. HEADER ROW DETECTION (Matches 'MODEL' and 'MANUFACTURER' or 'MRP')
-                const hasModel = upRow.some(c => c.includes('MODEL'));
-                const hasBrandOrMrp = upRow.some(c => c.includes('MANUFACTURER') || c.includes('OEM') || c.includes('BRAND') || c.includes('MRP'));
+                if (upRow.some(c => c === 'DBD%' || c.startsWith('DBD'))) { currentDbdRow = row; continue; }
+                if (upRow.some(c => c === 'CPF' || c === 'PF' || c.startsWith('CPF'))) { currentCpfRow = row; continue; }
+                if (upRow.some(c => c.includes('VALIDITY'))) { currentValidityRow = row; continue; }
+                if (upRow.some(c => c.includes('LOCATION'))) { currentLocationRow = row; continue; }
+
+                const hasModel = upRow.some(c => c.includes('MODEL') || c.includes('MODEL NAME'));
+                const hasPriceOrCode = upRow.some(c => c === 'MOP' || c === 'MRP' || c.includes('MODEL CODE') || c.includes('BRAND'));
                 
-                if (hasModel && hasBrandOrMrp && !upRow.includes('SFDC CODE')) {
-                    // We found a new chart's header!
-                    currentTenureRow = row; // Tenure headers like 12/4 sit on this very row in LG files
+                if (hasModel && hasPriceOrCode && !upRow.includes('SFDC CODE')) {
+                    currentTenureRow = row;
                     
-                    catColIdx = upRow.findIndex(c => c.includes('CATEGORY') || c === 'CAT');
-                    brandColIdx = upRow.findIndex(c => c.includes('MANUFACTURER') || c.includes('OEM') || c.includes('BRAND'));
+                    catColIdx = upRow.findIndex(c => c === 'CATEGORY' || c === 'CAT');
+                    brandColIdx = upRow.findIndex(c => c.includes('BRAND') || c.includes('MANUFACTURER') || c.includes('OEM'));
                     
                     modelNameColIdx = upRow.findIndex(c => c.includes('MODEL NAME') || c === 'MODEL');
                     if (modelNameColIdx === -1) modelNameColIdx = upRow.findIndex(c => c.includes('MODEL'));
                     
-                    mrpColIdx = upRow.findIndex(c => c === 'MRP');
+                    mrpColIdx = upRow.findIndex(c => c === 'MRP' || c === 'MOP');
                     withMrpColIdx = upRow.findIndex(c => c.includes('WITH MRP') || c === 'M_NAME');
                     
                     isDataSection = true;
                     continue; 
                 }
 
-                // 3. DATA ROW PROCESSING
                 if (isDataSection) {
                     if (modelNameColIdx === -1 || !row[modelNameColIdx]) continue;
 
-                    const modelRaw = row[modelNameColIdx].toString().trim();
-                    
-                    // Skip empty rows or repeated headers
+                    const modelRaw = (row[modelNameColIdx] || "").toString().trim();
                     if (!modelRaw || modelRaw.toUpperCase() === 'NIL' || modelRaw.toUpperCase().includes('MODEL')) continue;
 
-                    const catVal = (catColIdx !== -1 && row[catColIdx]) ? row[catColIdx].toString().trim() : "";
-                    const brandVal = (brandColIdx !== -1 && row[brandColIdx]) ? row[brandColIdx].toString().trim() : "";
+                    let catVal = (catColIdx !== -1 && row[catColIdx]) ? row[catColIdx].toString().trim() : "MOBILES";
+                    let brandVal = (brandColIdx !== -1 && row[brandColIdx]) ? row[brandColIdx].toString().trim() : (defaultBrand || "Vivo");
                     const mrpVal = (mrpColIdx !== -1 && row[mrpColIdx]) ? row[mrpColIdx].toString().trim() : "";
                     
                     let finalModel = modelRaw;
@@ -528,48 +508,37 @@
                         finalModel = `${finalModel} ${mrpVal}`.trim();
                     }
 
-                    // Start searching for "Y" after all text columns
-                    let maxMetaCol = Math.max(0, modelNameColIdx);
-                    if (catColIdx > maxMetaCol) maxMetaCol = catColIdx;
+                    let maxMetaCol = Math.max(modelNameColIdx, mrpColIdx);
+                    const modelCodeIdx = upRow.findIndex(c => c.includes('MODEL CODE'));
+                    if (modelCodeIdx > maxMetaCol) maxMetaCol = modelCodeIdx;
                     if (brandColIdx > maxMetaCol) maxMetaCol = brandColIdx;
-                    if (mrpColIdx > maxMetaCol) maxMetaCol = mrpColIdx;
-                    if (withMrpColIdx > maxMetaCol) maxMetaCol = withMrpColIdx;
 
                     const searchStartIndex = maxMetaCol + 1;
                     
-                    // Look for 'Y' under scheme columns
                     for (let j = searchStartIndex; j < row.length; j++) {
                         const cell = row[j] ? row[j].toString().trim().toUpperCase() : "";
                         
                         if (cell === "YES" || cell === "Y") {
-                            
                             const schemeStr = (currentTenureRow[j] || "").toString().trim();
                             let tenure = "";
                             let adv = "";
                             
-                            // Splitting tenure logic (e.g. 15/4 or Fixed EMI 2999/1)
                             if (schemeStr) {
                                 if (schemeStr.includes('/') || schemeStr.includes('|')) {
-                                    if (schemeStr.toUpperCase().includes('FIXED EMI')) {
-                                        tenure = schemeStr; // Keep full text
-                                        adv = "";
-                                    } else {
-                                        let parts = schemeStr.split(/[|\/]/);
-                                        tenure = parts[0] ? parts[0].trim() : "";
-                                        adv = parts[1] ? parts[1].trim() : "";
-                                    }
+                                    let parts = schemeStr.split(/[|\/]/);
+                                    tenure = parts[0] ? parts[0].trim() : "";
+                                    adv = parts[1] ? parts[1].trim() : "";
                                 } else {
                                     tenure = schemeStr;
                                 }
                             }
 
-                            // Pull matching metadata using the EXACT column index (j)
                             let dbd = (currentDbdRow[j] || "").toString().trim().replace(/%/g, '');
                             let cpf = (currentCpfRow[j] || "").toString().trim();
                             let validity = (currentValidityRow[j] || "").toString().trim();
                             let loc = (currentLocationRow[j] || "").toString().trim();
 
-                            const clean = (val) => (val.toUpperCase() === 'NIL' || val.toUpperCase() === 'NA') ? '0' : val;
+                            const clean = (val) => (!val || val.toUpperCase() === 'NIL' || val.toUpperCase() === 'NA') ? '0' : val;
 
                             globalRows.push([
                                 clean(catVal),
@@ -588,7 +557,6 @@
                 }
             }
 
-            // Output Rendering
             const placeholder = document.getElementById('placeholderState');
             const activeResult = document.getElementById('activeResultState');
             const resultDiv = document.getElementById('finalResult');
@@ -601,7 +569,6 @@
                 
                 placeholder.style.display = 'none';
                 activeResult.classList.add('visible');
-                
                 showToast("All Charts Processed! Ready for Download.");
             } else {
                 showToast("No 'YES' or 'Y' match found!");
@@ -634,7 +601,6 @@
             globalRows.forEach(row => {
                 html += '<tr>';
                 row.forEach((cell, index) => {
-                    // Update: Index 8 is the VALIDITY column. We remove the text format override for it.
                     if (index === 8) {
                         html += `<td>${cell}</td>`; 
                     } else {
@@ -661,7 +627,6 @@
 
         function resetAll() {
             document.getElementById('excelInput').value = '';
-            
             document.getElementById('excelFile').value = '';
             const sheetSelect = document.getElementById('sheetSelect');
             sheetSelect.style.display = 'none';
