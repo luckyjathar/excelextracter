@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Excel Tablet Extractor v5.0</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --primary-blue-dark: #1d4ed8;
+            --slate-800: #1e293b;
+            --slate-900: #0f172a;
+            --slate-50: #f8fafc;
+            --slate-100: #f1f5f9;
+            --emerald-500: #10b981;
+            --emerald-600: #059669;
+            --emerald-400: #34d399;
+            --text-main: #334155;
+            --text-light: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--slate-100);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .tablet-container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 1280px;
+            height: 92vh;
+            min-height: 600px;
+            max-height: 850px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            border: 12px solid var(--slate-800);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        .camera-hole {
+            position: absolute;
+            top: 50%;
+            left: -6px;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background-color: #000;
+            border-radius: 50%;
+            box-shadow: inset 0 0 2px rgba(255,255,255,0.2);
+            z-index: 100;
+        }
+
+        .app-header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 16px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+        .header-title h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .header-title p { font-size: 11px; color: #bfdbfe; margin-top: 2px; font-weight: 500; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+
+        .split-layout {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        @media (min-width: 768px) {
+            .split-layout {
+                flex-direction: row;
+            }
+        }
+
+        .pane {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            height: 100%;
+            overflow: hidden;
+        }
+        .input-pane {
+            background-color: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            flex: 0.7; 
+        }
+        .result-pane {
+            background-color: var(--slate-50);
+            position: relative;
+            flex: 1.3; 
+        }
+
+        .pane-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .pane-header label { font-size: 14px; font-weight: 700; color: var(--slate-800); }
+        .clear-btn {
+            background: none; border: none; color: var(--primary-blue);
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            cursor: pointer; letter-spacing: 0.5px; transition: opacity 0.2s;
+        }
+        .clear-btn:active { opacity: 0.6; }
+
+        .file-upload-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+        .file-upload-box label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--slate-800);
+        }
+        .file-input { font-size: 12px; }
+        .sheet-select {
+            display: none;
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 13px;
+            color: var(--slate-800);
+            outline: none;
+        }
+        .sheet-select:focus { border-color: var(--primary-blue); }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            background-color: var(--slate-50);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 11px;
+            font-family: monospace;
+            color: var(--text-main);
+            outline: none;
+            resize: none;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+            white-space: pre;
+        }
+        textarea:focus { border-color: var(--primary-blue); background-color: #ffffff; }
+
+        .btn-main {
+            width: 100%;
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        .btn-main:active { transform: scale(0.98); background-color: var(--primary-blue-dark); }
+        .btn-main svg { width: 18px; height: 18px; margin-right: 8px; }
+
+        .placeholder-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-light);
+            text-align: center;
+        }
+        .placeholder-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+        
+        .active-result-state {
+            flex: 1;
+            display: none; 
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        .active-result-state.visible { display: flex; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Search & Filter Toolbar */
+        .search-toolbar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .search-box-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+            align-items: center;
+        }
+        .search-box-wrapper svg {
+            position: absolute;
+            left: 12px;
+            width: 16px;
+            height: 16px;
+            color: var(--text-light);
+            pointer-events: none;
+        }
+        .search-input {
+            width: 100%;
+            padding: 10px 32px 10px 36px;
+            border-radius: 10px;
+            border: 2px solid #cbd5e1;
+            background-color: #ffffff;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--slate-800);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-input:focus {
+            border-color: var(--primary-blue);
+        }
+        .clear-search-btn {
+            position: absolute;
+            right: 10px;
+            background: #e2e8f0;
+            border: none;
+            color: var(--slate-800);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .brand-filter {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 2px solid #cbd5e1;
+            background-color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--slate-800);
+            outline: none;
+            cursor: pointer;
+        }
+        .brand-filter:focus { border-color: var(--primary-blue); }
+
+        .stats-badge {
+            background-color: #d1fae5; color: #047857; font-size: 11px;
+            font-weight: 800; padding: 5px 10px; border-radius: 8px; text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Interactive Table Styling */
+        .table-container {
+            flex: 1;
+            width: 100%;
+            background-color: var(--slate-900);
+            border-radius: 12px;
+            overflow: auto;
+            border: 2px solid var(--slate-800);
+            margin-bottom: 12px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11.5px;
+            font-family: monospace;
+            color: #e2e8f0;
+            text-align: left;
+        }
+        .data-table th {
+            position: sticky;
+            top: 0;
+            background-color: var(--slate-800);
+            color: #93c5fd;
+            padding: 10px 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            border-bottom: 2px solid #334155;
+            white-space: nowrap;
+            z-index: 2;
+        }
+        .data-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #1e293b;
+            white-space: nowrap;
+        }
+        .data-table tbody tr:hover {
+            background-color: rgba(37, 99, 235, 0.2);
+        }
+        .col-model {
+            color: var(--emerald-400);
+            font-weight: 700;
+        }
+        .col-scheme {
+            color: #fde047;
+            font-weight: 700;
+        }
+        .col-mrp {
+            color: #f8fafc;
+            font-weight: 700;
+        }
+        .no-match-msg {
+            padding: 40px;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+            font-family: sans-serif;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-action {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-copy { background-color: #e2e8f0; color: var(--slate-800); }
+        .btn-copy:active { background-color: #cbd5e1; }
+        .btn-export {
+            background-color: var(--emerald-500); color: white;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+        }
+        .btn-export:active { transform: scale(0.96); background-color: var(--emerald-600); }
+        .btn-action svg { width: 18px; height: 18px; margin-right: 8px; }
+
+        .app-footer {
+            text-align: center;
+            padding: 8px;
+            font-size: 11px;
+            color: var(--text-light);
+            background-color: var(--slate-50);
+            border-top: 1px solid #e2e8f0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .toast {
+            position: absolute;
+            bottom: 45px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--slate-800);
+            color: white;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 50;
+            white-space: nowrap;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="tablet-container">
+        <div class="camera-hole"></div>
+        
+        <header class="app-header">
+            <div class="header-title">
+                <h1>Excel Extractor</h1>
+                <p>Tablet Workspace Edition • Model Search</p>
+            </div>
+            <div class="header-actions">
+                <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">v5.0 - Pro Max</span>
+            </div>
+        </header>
+
+        <div class="split-layout">
+            
+            <div class="pane input-pane">
+                <div class="pane-header">
+                    <label>Data Input</label>
+                    <button class="clear-btn" onclick="resetAll()">Clear All</button>
+                </div>
+                
+                <div class="file-upload-box">
+                    <label for="excelFile">Upload Excel File (.xlsx, .xls, .xlsb)</label>
+                    <input type="file" id="excelFile" class="file-input" accept=".xlsx, .xls, .xlsb, .csv" />
+                    
+                    <select id="sheetSelect" class="sheet-select">
+                        <option value="">-- Select Sheet --</option>
+                    </select>
+                </div>
+
+                <textarea 
+                    id="excelInput" 
+                    placeholder="Headers aur model rows wala Excel data yahan paste karein ya upar file upload karein..." 
+                ></textarea>
+                
+                <button class="btn-main" onclick="processLogic()">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    Process All Charts
+                </button>
+            </div>
+
+            <div class="pane result-pane">
+                
+                <div id="placeholderState" class="placeholder-state">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <h3 style="font-size: 16px; font-weight: 700; color: var(--slate-800); margin-bottom: 4px;">No Data Yet</h3>
+                    <p style="font-size: 12px;">Upload file or paste your data on the left and click Process.</p>
+                </div>
+
+                <div id="activeResultState" class="active-result-state">
+                    
+                    <!-- Search & Filter Bar -->
+                    <div class="search-toolbar">
+                        <div class="search-box-wrapper">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <input 
+                                type="text" 
+                                id="modelSearchInput" 
+                                class="search-input" 
+                                placeholder="Search Model Name, MRP, Tenure (e.g. Y28, V40, 18999)..." 
+                                oninput="filterResults()"
+                            />
+                            <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()">✕</button>
+                        </div>
+
+                        <select id="brandFilterSelect" class="brand-filter" onchange="filterResults()">
+                            <option value="ALL">All Brands</option>
+                        </select>
+
+                        <span id="stats" class="stats-badge">0 Rows</span>
+                    </div>
+                    
+                    <!-- Interactive Table Output -->
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>CAT</th>
+                                    <th>BRAND</th>
+                                    <th>MODEL</th>
+                                    <th>MRP</th>
+                                    <th>TENURE</th>
+                                    <th>ADV EMI</th>
+                                    <th>DBD%</th>
+                                    <th>CPF</th>
+                                    <th>VALIDITY</th>
+                                    <th>LOCATION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                        <div id="noMatchMsg" class="no-match-msg" style="display: none;">
+                            No matching models found for your search.
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-action btn-copy" onclick="copyToClipboard()">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            Copy Data
+                        </button>
+                        <button class="btn-action btn-export" onclick="exportToExcel()">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Download Excel (.xlsx)
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <footer class="app-footer">
+            crafted by THE_LAKSHYA
+        </footer>
+
+        <div id="toast" class="toast">Message</div>
+
+    </div>
+
+    <script>
+        let globalRows = []; 
+        let filteredRows = [];
+        let globalWorkbook = null; 
+        const headers = ["CATEGORY", "BRAND", "MODEL", "MRP", "TOTAL TENURE", "ADVANCE EMI", "DBD", "CPF", "VALIDITY", "LOCATION"];
+        let toastTimeout;
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
+        }
+
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                globalWorkbook = XLSX.read(data, {type: 'array'});
+                
+                const sheetSelect = document.getElementById('sheetSelect');
+                sheetSelect.innerHTML = '<option value="">-- Select Sheet --</option>';
+                
+                globalWorkbook.SheetNames.forEach(sheetName => {
+                    const option = document.createElement('option');
+                    option.value = sheetName;
+                    option.textContent = sheetName;
+                    sheetSelect.appendChild(option);
+                });
+                
+                sheetSelect.style.display = 'block';
+                showToast("File Loaded! Please select a Sheet.");
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        document.getElementById('sheetSelect').addEventListener('change', function(e) {
+            const sheetName = e.target.value;
+            if (!sheetName || !globalWorkbook) return;
+
+            const worksheet = globalWorkbook.Sheets[sheetName];
+            const csvData = XLSX.utils.sheet_to_csv(worksheet, {FS: "\t"}); 
+            
+            document.getElementById('excelInput').value = csvData;
+            showToast("Sheet data imported! Click Process All Charts.");
+        });
+
+        function processLogic() {
+            const input = document.getElementById('excelInput').value.trim();
+            if (!input) {
+                showToast("Please paste data or upload a file!");
+                return;
+            }
+
+            const rawData = input.split('\n').map(r => r.split('\t'));
+            globalRows = [];
+
+            let currentDbdRow = [];
+            let currentCpfRow = [];
+            let currentValidityRow = [];
+            let currentLocationRow = [];
+            let currentTenureRow = [];
+            
+            let defaultBrand = "";
+            let catColIdx = -1;
+            let brandColIdx = -1;
+            let modelNameColIdx = -1;
+            let mrpColIdx = -1;
+            let withMrpColIdx = -1;
+            let isDataSection = false;
+
+            for (let i = 0; i < rawData.length; i++) {
+                const row = rawData[i];
+                if (!row || row.length === 0) continue;
+
+                const cleanRow = row.map(c => (c || "").toString().trim());
+                const upRow = cleanRow.map(c => c.toUpperCase());
+
+                const nonBlank = cleanRow.filter(c => c !== "");
+                if (nonBlank.length === 1 && !isDataSection) {
+                    const singleVal = nonBlank[0];
+                    if (['VIVO', 'OPPO', 'SAMSUNG', 'MI', 'REALME', 'ONEPLUS', 'APPLE', 'MOTOROLA', 'IQOO'].includes(singleVal.toUpperCase())) {
+                        defaultBrand = singleVal;
+                        continue;
+                    }
+                }
+
+                if (upRow.some(c => c === 'DBD%' || c.startsWith('DBD'))) { currentDbdRow = row; continue; }
+                if (upRow.some(c => c === 'CPF' || c === 'PF' || c.startsWith('CPF'))) { currentCpfRow = row; continue; }
+                if (upRow.some(c => c.includes('VALIDITY'))) { currentValidityRow = row; continue; }
+                if (upRow.some(c => c.includes('LOCATION'))) { currentLocationRow = row; continue; }
+
+                const hasModel = upRow.some(c => c.includes('MODEL') || c.includes('MODEL NAME'));
+                const hasPriceOrCode = upRow.some(c => c === 'MOP' || c === 'MRP' || c.includes('MODEL CODE') || c.includes('BRAND'));
+                
+                if (hasModel && hasPriceOrCode && !upRow.includes('SFDC CODE')) {
+                    currentTenureRow = row;
+                    
+                    catColIdx = upRow.findIndex(c => c === 'CATEGORY' || c === 'CAT');
+                    brandColIdx = upRow.findIndex(c => c.includes('BRAND') || c.includes('MANUFACTURER') || c.includes('OEM'));
+                    
+                    modelNameColIdx = upRow.findIndex(c => c.includes('MODEL NAME') || c === 'MODEL');
+                    if (modelNameColIdx === -1) modelNameColIdx = upRow.findIndex(c => c.includes('MODEL'));
+                    
+                    mrpColIdx = upRow.findIndex(c => c === 'MRP' || c === 'MOP');
+                    withMrpColIdx = upRow.findIndex(c => c.includes('WITH MRP') || c === 'M_NAME');
+                    
+                    isDataSection = true;
+                    continue; 
+                }
+
+                if (isDataSection) {
+                    if (modelNameColIdx === -1 || !row[modelNameColIdx]) continue;
+
+                    const modelRaw = (row[modelNameColIdx] || "").toString().trim();
+                    if (!modelRaw || modelRaw.toUpperCase() === 'NIL' || modelRaw.toUpperCase().includes('MODEL')) continue;
+
+                    let catVal = (catColIdx !== -1 && row[catColIdx]) ? row[catColIdx].toString().trim() : "MOBILES";
+                    let brandVal = (brandColIdx !== -1 && row[brandColIdx]) ? row[brandColIdx].toString().trim() : (defaultBrand || "Vivo");
+                    const mrpVal = (mrpColIdx !== -1 && row[mrpColIdx]) ? row[mrpColIdx].toString().trim() : "";
+                    
+                    let finalModel = modelRaw;
+                    if (withMrpColIdx !== -1 && row[withMrpColIdx]) {
+                        const wMrp = row[withMrpColIdx].toString().trim();
+                        if (wMrp) finalModel = wMrp;
+                    }
+                    if (mrpVal && !finalModel.includes(mrpVal)) {
+                        finalModel = `${finalModel} ${mrpVal}`.trim();
+                    }
+
+                    let maxMetaCol = Math.max(modelNameColIdx, mrpColIdx);
+                    const modelCodeIdx = upRow.findIndex(c => c.includes('MODEL CODE'));
+                    if (modelCodeIdx > maxMetaCol) maxMetaCol = modelCodeIdx;
+                    if (brandColIdx > maxMetaCol) maxMetaCol = brandColIdx;
+
+                    const searchStartIndex = maxMetaCol + 1;
+                    
+                    for (let j = searchStartIndex; j < row.length; j++) {
+                        const cell = row[j] ? row[j].toString().trim().toUpperCase() : "";
+                        
+                        if (cell === "YES" || cell === "Y") {
+                            const schemeStr = (currentTenureRow[j] || "").toString().trim();
+                            let tenure = "";
+                            let adv = "";
+                            
+                            if (schemeStr) {
+                                if (schemeStr.includes('/') || schemeStr.includes('|')) {
+                                    let parts = schemeStr.split(/[|\/]/);
+                                    tenure = parts[0] ? parts[0].trim() : "";
+                                    adv = parts[1] ? parts[1].trim() : "";
+                                } else {
+                                    tenure = schemeStr;
+                                }
+                            }
+
+                            let dbd = (currentDbdRow[j] || "").toString().trim().replace(/%/g, '');
+                            let cpf = (currentCpfRow[j] || "").toString().trim();
+                            let validity = (currentValidityRow[j] || "").toString().trim();
+                            let loc = (currentLocationRow[j] || "").toString().trim();
+
+                            const clean = (val) => (!val || val.toUpperCase() === 'NIL' || val.toUpperCase() === 'NA') ? '0' : val;
+
+                            globalRows.push([
+                                clean(catVal),
+                                clean(brandVal),
+                                clean(finalModel),
+                                clean(mrpVal),
+                                clean(tenure),
+                                clean(adv),
+                                clean(dbd),
+                                clean(cpf),
+                                clean(validity),
+                                clean(loc)
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            const placeholder = document.getElementById('placeholderState');
+            const activeResult = document.getElementById('activeResultState');
+
+            if (globalRows.length > 0) {
+                populateBrandDropdown();
+                document.getElementById('modelSearchInput').value = '';
+                document.getElementById('clearSearchBtn').style.display = 'none';
+                
+                filterResults();
+                
+                placeholder.style.display = 'none';
+                activeResult.classList.add('visible');
+                showToast(`Processed ${globalRows.length} rows! Use search bar to filter models.`);
+            } else {
+                showToast("No 'YES' or 'Y' match found!");
+                placeholder.style.display = 'flex';
+                activeResult.classList.remove('visible');
+            }
+        }
+
+        function populateBrandDropdown() {
+            const brandSelect = document.getElementById('brandFilterSelect');
+            const uniqueBrands = [...new Set(globalRows.map(r => r[1].toUpperCase()))].filter(Boolean);
+            
+            brandSelect.innerHTML = '<option value="ALL">All Brands</option>';
+            uniqueBrands.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b;
+                opt.textContent = b;
+                brandSelect.appendChild(opt);
+            });
+        }
+
+        function filterResults() {
+            const query = document.getElementById('modelSearchInput').value.trim().toUpperCase();
+            const selectedBrand = document.getElementById('brandFilterSelect').value;
+            const clearBtn = document.getElementById('clearSearchBtn');
+            
+            clearBtn.style.display = query.length > 0 ? 'flex' : 'none';
+
+            // Support multi-keyword search (e.g., "Y28 8/0" checks if row has both "Y28" and "8/0")
+            const terms = query.split(/\s+/).filter(Boolean);
+
+            filteredRows = globalRows.filter(row => {
+                const brandMatch = (selectedBrand === 'ALL') || (row[1].toUpperCase() === selectedBrand);
+                if (!brandMatch) return false;
+
+                if (terms.length === 0) return true;
+
+                // Combine searchable text per row (Brand, Model, MRP, Tenure/Adv, DBD, Location)
+                const searchableString = `${row[1]} ${row[2]} ${row[3]} ${row[4]}/${row[5]} ${row[6]} ${row[9]}`.toUpperCase();
+                return terms.every(term => searchableString.includes(term));
+            });
+
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const stats = document.getElementById('stats');
+            const noMatchMsg = document.getElementById('noMatchMsg');
+
+            if (filteredRows.length === 0) {
+                tbody.innerHTML = '';
+                noMatchMsg.style.display = 'block';
+                stats.innerText = `0 / ${globalRows.length} Rows`;
+                return;
+            }
+
+            noMatchMsg.style.display = 'none';
+            stats.innerText = filteredRows.length === globalRows.length 
+                ? `${globalRows.length} Rows` 
+                : `${filteredRows.length} / ${globalRows.length} Rows`;
+
+            // Fast HTML string rendering
+            const rowsHtml = filteredRows.map(r => `
+                <tr>
+                    <td>${escapeHtml(r[0])}</td>
+                    <td>${escapeHtml(r[1])}</td>
+                    <td class="col-model">${escapeHtml(r[2])}</td>
+                    <td class="col-mrp">${escapeHtml(r[3])}</td>
+                    <td class="col-scheme">${escapeHtml(r[4])}</td>
+                    <td class="col-scheme">${escapeHtml(r[5])}</td>
+                    <td>${escapeHtml(r[6])}</td>
+                    <td>${escapeHtml(r[7])}</td>
+                    <td>${escapeHtml(r[8])}</td>
+                    <td>${escapeHtml(r[9])}</td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = rowsHtml;
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function clearSearch() {
+            document.getElementById('modelSearchInput').value = '';
+            filterResults();
+            document.getElementById('modelSearchInput').focus();
+        }
+
+        function copyToClipboard() {
+            const targetRows = filteredRows.length > 0 ? filteredRows : globalRows;
+            if (targetRows.length === 0) return;
+
+            const text = headers.join('\t') + '\n' + targetRows.map(row => row.join('\t')).join('\n');
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            showToast(`Copied ${targetRows.length} rows to clipboard!`);
+        }
+
+        function exportToExcel() {
+            const targetRows = filteredRows.length > 0 ? filteredRows : globalRows;
+            if (targetRows.length === 0) {
+                showToast("No data to export!");
+                return;
+            }
+
+            // Generate True .xlsx using SheetJS
+            const worksheetData = [headers, ...targetRows];
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Extracted_Schemes");
+
+            const searchTag = document.getElementById('modelSearchInput').value.trim().replace(/[^a-zA-Z0-9]/g, '_');
+            const fileName = searchTag 
+                ? `Scheme_${searchTag}_${new Date().getTime()}.xlsx` 
+                : `MultiChart_Data_${new Date().getTime()}.xlsx`;
+
+            XLSX.writeFile(wb, fileName);
+            showToast(`Downloaded ${targetRows.length} rows as .xlsx!`);
+        }
+
+        function resetAll() {
+            document.getElementById('excelInput').value = '';
+            document.getElementById('excelFile').value = '';
+            document.getElementById('modelSearchInput').value = '';
+            document.getElementById('clearSearchBtn').style.display = 'none';
+            
+            const sheetSelect = document.getElementById('sheetSelect');
+            sheetSelect.style.display = 'none';
+            sheetSelect.innerHTML = '<option value="">-- Select Sheet --</option>';
+            globalWorkbook = null;
+
+            const placeholder = document.getElementById('placeholderState');
+            const activeResult = document.getElementById('activeResultState');
+            
+            placeholder.style.display = 'flex';
+            activeResult.classList.remove('visible');
+            
+            globalRows = [];
+            filteredRows = [];
+            document.getElementById('tableBody').innerHTML = '';
+            showToast("Workspace Cleared");
+        }
+    </script>
+</body>
+</html>
