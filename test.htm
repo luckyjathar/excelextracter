@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Excel Tablet Extractor v5.0</title>
+    <title>Excel Tablet Extractor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
@@ -33,16 +33,16 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 16px;
+            padding: 20px;
         }
 
         .tablet-container {
             background-color: #ffffff;
             width: 100%;
-            max-width: 1280px;
-            height: 92vh;
+            max-width: 1200px;
+            height: 90vh;
             min-height: 600px;
-            max-height: 850px;
+            max-height: 800px;
             display: flex;
             flex-direction: column;
             position: relative;
@@ -68,16 +68,16 @@
         .app-header {
             background-color: var(--primary-blue);
             color: white;
-            padding: 16px 28px;
+            padding: 20px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             z-index: 10;
         }
-        .header-title h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-        .header-title p { font-size: 11px; color: #bfdbfe; margin-top: 2px; font-weight: 500; }
-        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .header-title h1 { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+        .header-title p { font-size: 12px; color: #bfdbfe; margin-top: 2px; font-weight: 500; }
+        .header-actions { display: flex; gap: 12px; }
 
         .split-layout {
             flex: 1;
@@ -93,30 +93,31 @@
         }
 
         .pane {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            padding: 24px;
             height: 100%;
             overflow: hidden;
         }
         .input-pane {
             background-color: #ffffff;
             border-right: 1px solid #e2e8f0;
-            flex: 0.7; 
+            flex: 0.8; 
         }
         .result-pane {
             background-color: var(--slate-50);
             position: relative;
-            flex: 1.3; 
+            flex: 1.2; 
         }
 
         .pane-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            align-items: flex-end;
+            margin-bottom: 12px;
         }
-        .pane-header label { font-size: 14px; font-weight: 700; color: var(--slate-800); }
+        .pane-header label { font-size: 15px; font-weight: 700; color: var(--slate-800); }
         .clear-btn {
             background: none; border: none; color: var(--primary-blue);
             font-size: 11px; font-weight: 700; text-transform: uppercase;
@@ -127,23 +128,25 @@
         .file-upload-box {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             background: #f8fafc;
             border: 2px dashed #cbd5e1;
             padding: 12px;
             border-radius: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
         .file-upload-box label {
             font-size: 12px;
             font-weight: 600;
             color: var(--slate-800);
         }
-        .file-input { font-size: 12px; }
+        .file-input {
+            font-size: 12px;
+        }
         .sheet-select {
             display: none;
             width: 100%;
-            padding: 8px 10px;
+            padding: 10px;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
             background: white;
@@ -159,14 +162,14 @@
             background-color: var(--slate-50);
             border: 2px solid #e2e8f0;
             border-radius: 12px;
-            padding: 12px;
-            font-size: 11px;
+            padding: 16px;
+            font-size: 12px;
             font-family: monospace;
             color: var(--text-main);
             outline: none;
             resize: none;
             transition: all 0.2s;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             white-space: pre;
         }
         textarea:focus { border-color: var(--primary-blue); background-color: #ffffff; }
@@ -176,7 +179,7 @@
             background-color: var(--primary-blue);
             color: white;
             border: none;
-            padding: 14px;
+            padding: 16px;
             border-radius: 12px;
             font-size: 14px;
             font-weight: 700;
@@ -188,7 +191,7 @@
             transition: transform 0.1s, background-color 0.2s;
         }
         .btn-main:active { transform: scale(0.98); background-color: var(--primary-blue-dark); }
-        .btn-main svg { width: 18px; height: 18px; margin-right: 8px; }
+        .btn-main svg { width: 20px; height: 20px; margin-right: 8px; }
 
         .placeholder-state {
             flex: 1;
@@ -206,46 +209,37 @@
             display: none; 
             flex-direction: column;
             height: 100%;
-            overflow: hidden;
         }
-        .active-result-state.visible { display: flex; animation: fadeIn 0.3s ease; }
+        .active-result-state.visible { display: flex; animation: fadeIn 0.4s ease; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Search & Filter Toolbar */
-        .search-toolbar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-            align-items: center;
+        .stats-badge {
+            background-color: #d1fae5; color: #047857; font-size: 11px;
+            font-weight: 900; padding: 4px 10px; border-radius: 6px; text-transform: uppercase;
+            white-space: nowrap;
         }
-        .search-box-wrapper {
+
+        /* NEW: Model Search Box Styling */
+        .model-search-wrapper {
             position: relative;
-            flex: 1;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
         }
-        .search-box-wrapper svg {
-            position: absolute;
-            left: 12px;
-            width: 16px;
-            height: 16px;
-            color: var(--text-light);
-            pointer-events: none;
-        }
-        .search-input {
+        .model-search-input {
             width: 100%;
-            padding: 10px 32px 10px 36px;
+            padding: 10px 34px 10px 14px;
             border-radius: 10px;
             border: 2px solid #cbd5e1;
             background-color: #ffffff;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--slate-800);
             outline: none;
             transition: border-color 0.2s;
         }
-        .search-input:focus {
+        .model-search-input:focus {
             border-color: var(--primary-blue);
         }
         .clear-search-btn {
@@ -264,81 +258,20 @@
             align-items: center;
             justify-content: center;
         }
-        .brand-filter {
-            padding: 10px 12px;
-            border-radius: 10px;
-            border: 2px solid #cbd5e1;
-            background-color: #ffffff;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--slate-800);
-            outline: none;
-            cursor: pointer;
-        }
-        .brand-filter:focus { border-color: var(--primary-blue); }
 
-        .stats-badge {
-            background-color: #d1fae5; color: #047857; font-size: 11px;
-            font-weight: 800; padding: 5px 10px; border-radius: 8px; text-transform: uppercase;
-            white-space: nowrap;
-        }
-
-        /* Interactive Table Styling */
-        .table-container {
+        .result-box {
             flex: 1;
             width: 100%;
             background-color: var(--slate-900);
-            border-radius: 12px;
-            overflow: auto;
-            border: 2px solid var(--slate-800);
-            margin-bottom: 12px;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11.5px;
-            font-family: monospace;
-            color: #e2e8f0;
-            text-align: left;
-        }
-        .data-table th {
-            position: sticky;
-            top: 0;
-            background-color: var(--slate-800);
-            color: #93c5fd;
-            padding: 10px 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            border-bottom: 2px solid #334155;
-            white-space: nowrap;
-            z-index: 2;
-        }
-        .data-table td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #1e293b;
-            white-space: nowrap;
-        }
-        .data-table tbody tr:hover {
-            background-color: rgba(37, 99, 235, 0.2);
-        }
-        .col-model {
             color: var(--emerald-400);
-            font-weight: 700;
-        }
-        .col-scheme {
-            color: #fde047;
-            font-weight: 700;
-        }
-        .col-mrp {
-            color: #f8fafc;
-            font-weight: 700;
-        }
-        .no-match-msg {
-            padding: 40px;
-            text-align: center;
-            color: var(--text-light);
-            font-size: 14px;
-            font-family: sans-serif;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-family: monospace;
+            overflow: auto;
+            white-space: pre;
+            border: 2px solid var(--slate-800);
+            margin-bottom: 16px;
         }
 
         .action-buttons {
@@ -347,9 +280,9 @@
         }
         .btn-action {
             flex: 1;
-            padding: 14px;
+            padding: 16px;
             border-radius: 12px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 700;
             border: none;
             display: flex;
@@ -369,7 +302,7 @@
 
         .app-footer {
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             font-size: 11px;
             color: var(--text-light);
             background-color: var(--slate-50);
@@ -381,14 +314,14 @@
 
         .toast {
             position: absolute;
-            bottom: 45px;
+            bottom: 50px;
             left: 50%;
             transform: translateX(-50%);
             background-color: var(--slate-800);
             color: white;
-            padding: 10px 22px;
+            padding: 12px 24px;
             border-radius: 50px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
             opacity: 0;
@@ -408,10 +341,10 @@
         <header class="app-header">
             <div class="header-title">
                 <h1>Excel Extractor</h1>
-                <p>Tablet Workspace Edition • Model Search</p>
+                <p>Tablet Workspace Edition</p>
             </div>
             <div class="header-actions">
-                <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">v5.0 - Pro Max</span>
+                <span style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">v4.0 - Pro Max</span>
             </div>
         </header>
 
@@ -452,60 +385,33 @@
                 </div>
 
                 <div id="activeResultState" class="active-result-state">
-                    
-                    <!-- Search & Filter Bar -->
-                    <div class="search-toolbar">
-                        <div class="search-box-wrapper">
-                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            <input 
-                                type="text" 
-                                id="modelSearchInput" 
-                                class="search-input" 
-                                placeholder="Search Model Name, MRP, Tenure (e.g. Y28, V40, 18999)..." 
-                                oninput="filterResults()"
-                            />
-                            <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()">✕</button>
-                        </div>
+                    <div class="pane-header">
+                        <label style="font-size: 13px;">Format: CAT | BRAND | MODEL | MRP | TENURE | ADV EMI | DBD | CPF | VALIDITY | LOCATION</label>
+                        <span id="stats" class="stats-badge"></span>
+                    </div>
 
-                        <select id="brandFilterSelect" class="brand-filter" onchange="filterResults()">
-                            <option value="ALL">All Brands</option>
-                        </select>
-
-                        <span id="stats" class="stats-badge">0 Rows</span>
+                    <!-- Added Model-wise Search Input without removing anything -->
+                    <div class="model-search-wrapper">
+                        <input 
+                            type="text" 
+                            id="modelSearch" 
+                            class="model-search-input" 
+                            placeholder="🔍 Model-wise Search (Type Model Name, Brand, MRP or Tenure)..." 
+                            oninput="applyModelSearch()"
+                        />
+                        <button id="clearSearchBtn" class="clear-search-btn" onclick="clearModelSearch()">✕</button>
                     </div>
                     
-                    <!-- Interactive Table Output -->
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>CAT</th>
-                                    <th>BRAND</th>
-                                    <th>MODEL</th>
-                                    <th>MRP</th>
-                                    <th>TENURE</th>
-                                    <th>ADV EMI</th>
-                                    <th>DBD%</th>
-                                    <th>CPF</th>
-                                    <th>VALIDITY</th>
-                                    <th>LOCATION</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tableBody"></tbody>
-                        </table>
-                        <div id="noMatchMsg" class="no-match-msg" style="display: none;">
-                            No matching models found for your search.
-                        </div>
-                    </div>
+                    <div id="finalResult" class="result-box"></div>
                     
                     <div class="action-buttons">
                         <button class="btn-action btn-copy" onclick="copyToClipboard()">
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                            Copy Data
+                            Copy Text
                         </button>
                         <button class="btn-action btn-export" onclick="exportToExcel()">
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Download Excel (.xlsx)
+                            Download Excel
                         </button>
                     </div>
                 </div>
@@ -523,7 +429,7 @@
 
     <script>
         let globalRows = []; 
-        let filteredRows = [];
+        let displayRows = []; // Holds filtered or full rows
         let globalWorkbook = null; 
         const headers = ["CATEGORY", "BRAND", "MODEL", "MRP", "TOTAL TENURE", "ADVANCE EMI", "DBD", "CPF", "VALIDITY", "LOCATION"];
         let toastTimeout;
@@ -533,7 +439,7 @@
             toast.innerText = msg;
             toast.classList.add('show');
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 2000);
         }
 
         document.getElementById('excelFile').addEventListener('change', function(e) {
@@ -569,7 +475,7 @@
             const csvData = XLSX.utils.sheet_to_csv(worksheet, {FS: "\t"}); 
             
             document.getElementById('excelInput').value = csvData;
-            showToast("Sheet data imported! Click Process All Charts.");
+            showToast("Sheet data imported! Click Process Data.");
         });
 
         function processLogic() {
@@ -708,15 +614,14 @@
             const activeResult = document.getElementById('activeResultState');
 
             if (globalRows.length > 0) {
-                populateBrandDropdown();
-                document.getElementById('modelSearchInput').value = '';
+                document.getElementById('modelSearch').value = '';
                 document.getElementById('clearSearchBtn').style.display = 'none';
                 
-                filterResults();
+                applyModelSearch();
                 
                 placeholder.style.display = 'none';
                 activeResult.classList.add('visible');
-                showToast(`Processed ${globalRows.length} rows! Use search bar to filter models.`);
+                showToast("All Charts Processed! Ready for Download.");
             } else {
                 showToast("No 'YES' or 'Y' match found!");
                 placeholder.style.display = 'flex';
@@ -724,133 +629,92 @@
             }
         }
 
-        function populateBrandDropdown() {
-            const brandSelect = document.getElementById('brandFilterSelect');
-            const uniqueBrands = [...new Set(globalRows.map(r => r[1].toUpperCase()))].filter(Boolean);
-            
-            brandSelect.innerHTML = '<option value="ALL">All Brands</option>';
-            uniqueBrands.forEach(b => {
-                const opt = document.createElement('option');
-                opt.value = b;
-                opt.textContent = b;
-                brandSelect.appendChild(opt);
-            });
-        }
-
-        function filterResults() {
-            const query = document.getElementById('modelSearchInput').value.trim().toUpperCase();
-            const selectedBrand = document.getElementById('brandFilterSelect').value;
+        function applyModelSearch() {
+            const query = document.getElementById('modelSearch').value.trim().toUpperCase();
             const clearBtn = document.getElementById('clearSearchBtn');
-            
+            const resultDiv = document.getElementById('finalResult');
+            const stats = document.getElementById('stats');
+
             clearBtn.style.display = query.length > 0 ? 'flex' : 'none';
 
-            // Support multi-keyword search (e.g., "Y28 8/0" checks if row has both "Y28" and "8/0")
-            const terms = query.split(/\s+/).filter(Boolean);
-
-            filteredRows = globalRows.filter(row => {
-                const brandMatch = (selectedBrand === 'ALL') || (row[1].toUpperCase() === selectedBrand);
-                if (!brandMatch) return false;
-
-                if (terms.length === 0) return true;
-
-                // Combine searchable text per row (Brand, Model, MRP, Tenure/Adv, DBD, Location)
-                const searchableString = `${row[1]} ${row[2]} ${row[3]} ${row[4]}/${row[5]} ${row[6]} ${row[9]}`.toUpperCase();
-                return terms.every(term => searchableString.includes(term));
-            });
-
-            renderTable();
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('tableBody');
-            const stats = document.getElementById('stats');
-            const noMatchMsg = document.getElementById('noMatchMsg');
-
-            if (filteredRows.length === 0) {
-                tbody.innerHTML = '';
-                noMatchMsg.style.display = 'block';
-                stats.innerText = `0 / ${globalRows.length} Rows`;
-                return;
+            if (!query) {
+                displayRows = globalRows;
+            } else {
+                const terms = query.split(/\s+/).filter(Boolean);
+                displayRows = globalRows.filter(row => {
+                    const rowStr = row.join(' ').toUpperCase();
+                    return terms.every(term => rowStr.includes(term));
+                });
             }
 
-            noMatchMsg.style.display = 'none';
-            stats.innerText = filteredRows.length === globalRows.length 
+            const previewText = headers.join('\t') + '\n' + displayRows.map(row => row.join('\t')).join('\n');
+            resultDiv.innerText = previewText;
+            
+            stats.innerText = displayRows.length === globalRows.length 
                 ? `${globalRows.length} Rows` 
-                : `${filteredRows.length} / ${globalRows.length} Rows`;
-
-            // Fast HTML string rendering
-            const rowsHtml = filteredRows.map(r => `
-                <tr>
-                    <td>${escapeHtml(r[0])}</td>
-                    <td>${escapeHtml(r[1])}</td>
-                    <td class="col-model">${escapeHtml(r[2])}</td>
-                    <td class="col-mrp">${escapeHtml(r[3])}</td>
-                    <td class="col-scheme">${escapeHtml(r[4])}</td>
-                    <td class="col-scheme">${escapeHtml(r[5])}</td>
-                    <td>${escapeHtml(r[6])}</td>
-                    <td>${escapeHtml(r[7])}</td>
-                    <td>${escapeHtml(r[8])}</td>
-                    <td>${escapeHtml(r[9])}</td>
-                </tr>
-            `).join('');
-
-            tbody.innerHTML = rowsHtml;
+                : `${displayRows.length} / ${globalRows.length} Rows`;
         }
 
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-        }
-
-        function clearSearch() {
-            document.getElementById('modelSearchInput').value = '';
-            filterResults();
-            document.getElementById('modelSearchInput').focus();
+        function clearModelSearch() {
+            document.getElementById('modelSearch').value = '';
+            applyModelSearch();
+            document.getElementById('modelSearch').focus();
         }
 
         function copyToClipboard() {
-            const targetRows = filteredRows.length > 0 ? filteredRows : globalRows;
-            if (targetRows.length === 0) return;
-
-            const text = headers.join('\t') + '\n' + targetRows.map(row => row.join('\t')).join('\n');
+            const rowsToCopy = displayRows.length > 0 ? displayRows : globalRows;
+            const text = headers.join('\t') + '\n' + rowsToCopy.map(row => row.join('\t')).join('\n');
             const el = document.createElement('textarea');
             el.value = text;
             document.body.appendChild(el);
             el.select();
             document.execCommand('copy');
             document.body.removeChild(el);
-            
-            showToast(`Copied ${targetRows.length} rows to clipboard!`);
+            showToast("Copied Data!");
         }
 
         function exportToExcel() {
-            const targetRows = filteredRows.length > 0 ? filteredRows : globalRows;
-            if (targetRows.length === 0) {
-                showToast("No data to export!");
-                return;
-            }
+            const rowsToExport = displayRows.length > 0 ? displayRows : globalRows;
+            if (rowsToExport.length === 0) return;
 
-            // Generate True .xlsx using SheetJS
-            const worksheetData = [headers, ...targetRows];
-            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Extracted_Schemes");
+            let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+            html += '<head><meta charset="utf-8"></head><body><table border="1">';
+            
+            html += '<tr style="background-color: #f1f5f9; font-weight: bold;">';
+            headers.forEach(h => html += `<td>${h}</td>`);
+            html += '</tr>';
 
-            const searchTag = document.getElementById('modelSearchInput').value.trim().replace(/[^a-zA-Z0-9]/g, '_');
-            const fileName = searchTag 
-                ? `Scheme_${searchTag}_${new Date().getTime()}.xlsx` 
-                : `MultiChart_Data_${new Date().getTime()}.xlsx`;
+            rowsToExport.forEach(row => {
+                html += '<tr>';
+                row.forEach((cell, index) => {
+                    if (index === 8) {
+                        html += `<td>${cell}</td>`; 
+                    } else {
+                        html += `<td style="vnd.ms-excel.numberformat:@">${cell}</td>`;
+                    }
+                });
+                html += '</tr>';
+            });
+            
+            html += '</table></body></html>';
 
-            XLSX.writeFile(wb, fileName);
-            showToast(`Downloaded ${targetRows.length} rows as .xlsx!`);
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `MultiChart_Data_${new Date().getTime()}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast("Excel File Downloaded Successfully!");
         }
 
         function resetAll() {
             document.getElementById('excelInput').value = '';
             document.getElementById('excelFile').value = '';
-            document.getElementById('modelSearchInput').value = '';
+            document.getElementById('modelSearch').value = '';
             document.getElementById('clearSearchBtn').style.display = 'none';
             
             const sheetSelect = document.getElementById('sheetSelect');
@@ -865,8 +729,7 @@
             activeResult.classList.remove('visible');
             
             globalRows = [];
-            filteredRows = [];
-            document.getElementById('tableBody').innerHTML = '';
+            displayRows = [];
             showToast("Workspace Cleared");
         }
     </script>
