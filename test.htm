@@ -261,50 +261,176 @@
             justify-content: center;
         }
 
-        /* Result Box with Table View */
+        /* Result Box with Card Layout */
         .result-box {
             flex: 1;
             width: 100%;
             background-color: var(--slate-900);
-            color: var(--emerald-400);
-            padding: 0;
+            padding: 14px;
             border-radius: 12px;
-            font-size: 11px;
-            font-family: monospace;
-            overflow: auto;
+            overflow-y: auto;
             border: 2px solid var(--slate-800);
             margin-bottom: 16px;
         }
 
-        .result-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            background-color: var(--slate-900);
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
         }
-        .result-table th {
-            position: sticky;
-            top: 0;
+
+        .scheme-card {
             background-color: var(--slate-800);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            transition: transform 0.15s ease, border-color 0.15s ease;
+            position: relative;
+        }
+        .scheme-card:hover {
+            border-color: #60a5fa;
+            transform: translateY(-2px);
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+        }
+        .badge-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .brand-badge {
+            background-color: var(--primary-blue);
             color: #ffffff;
-            padding: 10px 12px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 800;
-            border-bottom: 2px solid #334155;
-            border-right: 1px solid #334155;
-            white-space: nowrap;
-            z-index: 2;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
-        .result-table td {
-            padding: 8px 12px;
+        .cat-badge {
+            background-color: #334155;
+            color: #cbd5e1;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+        .single-card-snap {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid #475569;
+            color: #e2e8f0;
+            border-radius: 6px;
+            padding: 4px 7px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background 0.2s;
+            title: "Copy This Card Image";
+        }
+        .single-card-snap:hover {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+        }
+
+        .card-model-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            border-bottom: 1px dashed #334155;
+            padding-bottom: 8px;
+        }
+        .card-model-name {
             color: var(--emerald-400);
-            border-bottom: 1px solid #1e293b;
-            border-right: 1px solid #1e293b;
-            white-space: nowrap;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.3;
+            word-break: break-word;
         }
-        .result-table tbody tr:hover {
-            background-color: rgba(255, 255, 255, 0.05);
+        .card-mrp-box {
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .card-mrp-label {
+            font-size: 9px;
+            color: #94a3b8;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: block;
+        }
+        .card-mrp-val {
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 900;
+            font-family: monospace;
+        }
+
+        .card-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+        .metric-box {
+            background-color: var(--slate-900);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 6px 4px;
+            text-align: center;
+        }
+        .metric-label {
+            display: block;
+            font-size: 8.5px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .metric-val {
+            font-size: 12px;
+            font-weight: 800;
+            font-family: monospace;
+            color: #f8fafc;
+        }
+        .metric-val.highlight-scheme {
+            color: #fde047;
+        }
+        .metric-val.highlight-dbd {
+            color: #38bdf8;
+        }
+
+        .card-footer-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: #94a3b8;
+            font-weight: 600;
+            padding-top: 2px;
+        }
+        .card-footer-meta span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 48%;
+        }
+
+        .empty-cards-msg {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 600;
         }
 
         .action-buttons {
@@ -443,10 +569,7 @@
                     </div>
                     
                     <div id="finalResult" class="result-box">
-                        <table id="resultTable" class="result-table">
-                            <thead id="tableHead"></thead>
-                            <tbody id="tableBody"></tbody>
-                        </table>
+                        <div id="cardsContainer" class="cards-grid"></div>
                     </div>
                     
                     <div class="action-buttons">
@@ -454,7 +577,7 @@
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             Copy Text
                         </button>
-                        <button class="btn-action btn-image" onclick="copyTableImage()">
+                        <button class="btn-action btn-image" onclick="copyCardsImage()">
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                             Copy Image
                         </button>
@@ -670,7 +793,7 @@
                 
                 placeholder.style.display = 'none';
                 activeResult.classList.add('visible');
-                showToast("All Charts Processed! Ready for Download.");
+                showToast("All Charts Processed in Card Style!");
             } else {
                 showToast("No 'YES' or 'Y' match found!");
                 placeholder.style.display = 'flex';
@@ -688,8 +811,7 @@
         function applyModelSearch() {
             const query = document.getElementById('modelSearch').value.trim().toUpperCase();
             const clearBtn = document.getElementById('clearSearchBtn');
-            const thead = document.getElementById('tableHead');
-            const tbody = document.getElementById('tableBody');
+            const cardsContainer = document.getElementById('cardsContainer');
             const stats = document.getElementById('stats');
 
             clearBtn.style.display = query.length > 0 ? 'flex' : 'none';
@@ -704,21 +826,55 @@
                 });
             }
 
-            // Render Headers in Table
-            thead.innerHTML = '<tr>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</tr>';
-
-            // Render Rows in Table
+            // Render Cards inside #cardsContainer
             if (displayRows.length > 0) {
-                tbody.innerHTML = displayRows.map(row => 
-                    '<tr>' + row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('') + '</tr>'
-                ).join('');
+                cardsContainer.innerHTML = displayRows.map((row, idx) => `
+                    <div class="scheme-card" id="schemeCard_${idx}">
+                        <div class="card-top">
+                            <div class="badge-group">
+                                <span class="brand-badge">${escapeHtml(row[1])}</span>
+                                <span class="cat-badge">${escapeHtml(row[0])}</span>
+                            </div>
+                            <button class="single-card-snap" onclick="copySingleCardImage(${idx})" title="Copy this card image">📸</button>
+                        </div>
+                        <div class="card-model-row">
+                            <div class="card-model-name">${escapeHtml(row[2])}</div>
+                            <div class="card-mrp-box">
+                                <span class="card-mrp-label">MRP</span>
+                                <span class="card-mrp-val">₹${escapeHtml(row[3])}</span>
+                            </div>
+                        </div>
+                        <div class="card-metrics">
+                            <div class="metric-box">
+                                <span class="metric-label">TENURE</span>
+                                <span class="metric-val highlight-scheme">${escapeHtml(row[4])}</span>
+                            </div>
+                            <div class="metric-box">
+                                <span class="metric-label">ADV EMI</span>
+                                <span class="metric-val highlight-scheme">${escapeHtml(row[5])}</span>
+                            </div>
+                            <div class="metric-box">
+                                <span class="metric-label">DBD%</span>
+                                <span class="metric-val highlight-dbd">${escapeHtml(row[6])}%</span>
+                            </div>
+                            <div class="metric-box">
+                                <span class="metric-label">CPF</span>
+                                <span class="metric-val">${escapeHtml(row[7])}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer-meta">
+                            <span>📅 ${escapeHtml(row[8])}</span>
+                            <span>📍 ${escapeHtml(row[9])}</span>
+                        </div>
+                    </div>
+                `).join('');
             } else {
-                tbody.innerHTML = `<tr><td colspan="${headers.length}" style="text-align:center; padding: 24px; color: #94a3b8;">No matching models found</td></tr>`;
+                cardsContainer.innerHTML = `<div class="empty-cards-msg" style="grid-column: 1 / -1;">No matching models found</div>`;
             }
             
             stats.innerText = displayRows.length === globalRows.length 
-                ? `${globalRows.length} Rows` 
-                : `${displayRows.length} / ${globalRows.length} Rows`;
+                ? `${globalRows.length} Cards` 
+                : `${displayRows.length} / ${globalRows.length} Cards`;
         }
 
         function clearModelSearch() {
@@ -740,38 +896,47 @@
             showToast("Copied Data!");
         }
 
-        // NEW: Copy Processed Table as Image
-        async function copyTableImage() {
+        // Copy Single Card Image when clicking 📸 on any card
+        async function copySingleCardImage(idx) {
+            const cardEl = document.getElementById(`schemeCard_${idx}`);
+            if (!cardEl) return;
+            await captureElementAsImage(cardEl, `Model_Card_${idx + 1}`, true);
+        }
+
+        // Copy All Displayed Cards as Image
+        async function copyCardsImage() {
             const rowsToCapture = displayRows.length > 0 ? displayRows : globalRows;
             if (rowsToCapture.length === 0) {
-                showToast("No table data to capture!");
+                showToast("No cards to capture!");
                 return;
             }
 
-            if (rowsToCapture.length > 150) {
-                showToast("Please search/filter models first (Max 150 rows for crisp image)!");
+            if (rowsToCapture.length > 60) {
+                showToast("Please search/filter models first (Max 60 cards for clear image)!");
                 return;
             }
 
-            showToast("Generating Table Image...");
+            const cardsContainer = document.getElementById('cardsContainer');
+            await captureElementAsImage(cardsContainer, `Scheme_Cards_${new Date().getTime()}`, false);
+        }
 
-            const tableEl = document.getElementById('resultTable');
-            
-            // Create off-screen clone so full scrollable table is captured cleanly
+        async function captureElementAsImage(sourceEl, filePrefix, isSingleCard) {
+            showToast("Generating Card Image...");
+
             const wrapper = document.createElement('div');
             wrapper.style.position = 'fixed';
             wrapper.style.left = '-99999px';
             wrapper.style.top = '0';
             wrapper.style.backgroundColor = '#0f172a';
             wrapper.style.padding = '16px';
-            wrapper.style.borderRadius = '12px';
+            wrapper.style.borderRadius = '14px';
+            wrapper.style.width = isSingleCard ? '340px' : '860px';
 
-            const clonedTable = tableEl.cloneNode(true);
-            clonedTable.style.width = 'auto';
-            // Remove sticky position on clone headers for clean screenshot
-            clonedTable.querySelectorAll('th').forEach(th => th.style.position = 'static');
-            
-            wrapper.appendChild(clonedTable);
+            const clonedEl = sourceEl.cloneNode(true);
+            // Hide camera buttons inside the screenshot
+            clonedEl.querySelectorAll('.single-card-snap').forEach(btn => btn.style.display = 'none');
+
+            wrapper.appendChild(clonedEl);
             document.body.appendChild(wrapper);
 
             try {
@@ -792,26 +957,25 @@
                             await navigator.clipboard.write([
                                 new ClipboardItem({ 'image/png': blob })
                             ]);
-                            showToast("Table Image Copied to Clipboard!");
+                            showToast("Card Image Copied to Clipboard!");
                         } else {
                             throw new Error("Clipboard API unavailable");
                         }
                     } catch (err) {
-                        // Fallback: auto-download PNG if browser blocks clipboard image on local file://
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = `Table_Snapshot_${new Date().getTime()}.png`;
+                        a.download = `${filePrefix}.png`;
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
-                        showToast("Image Downloaded (Clipboard blocked on local file)!");
+                        showToast("Card Image Downloaded!");
                     }
                 }, 'image/png');
             } catch (e) {
                 if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
-                showToast("Error capturing table image!");
+                showToast("Error capturing card image!");
             }
         }
 
@@ -873,8 +1037,7 @@
             
             globalRows = [];
             displayRows = [];
-            document.getElementById('tableHead').innerHTML = '';
-            document.getElementById('tableBody').innerHTML = '';
+            document.getElementById('cardsContainer').innerHTML = '';
             showToast("Workspace Cleared");
         }
     </script>
