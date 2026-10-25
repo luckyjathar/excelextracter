@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Excel Tablet Extractor</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --primary-blue: #2563eb;
@@ -209,6 +210,7 @@
             display: none; 
             flex-direction: column;
             height: 100%;
+            overflow: hidden;
         }
         .active-result-state.visible { display: flex; animation: fadeIn 0.4s ease; }
 
@@ -220,7 +222,7 @@
             white-space: nowrap;
         }
 
-        /* NEW: Model Search Box Styling */
+        /* Model Search Box Styling */
         .model-search-wrapper {
             position: relative;
             margin-bottom: 10px;
@@ -259,30 +261,61 @@
             justify-content: center;
         }
 
+        /* Result Box with Table View */
         .result-box {
             flex: 1;
             width: 100%;
             background-color: var(--slate-900);
             color: var(--emerald-400);
-            padding: 16px;
+            padding: 0;
             border-radius: 12px;
             font-size: 11px;
             font-family: monospace;
             overflow: auto;
-            white-space: pre;
             border: 2px solid var(--slate-800);
             margin-bottom: 16px;
         }
 
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            background-color: var(--slate-900);
+        }
+        .result-table th {
+            position: sticky;
+            top: 0;
+            background-color: var(--slate-800);
+            color: #ffffff;
+            padding: 10px 12px;
+            font-size: 11px;
+            font-weight: 800;
+            border-bottom: 2px solid #334155;
+            border-right: 1px solid #334155;
+            white-space: nowrap;
+            z-index: 2;
+        }
+        .result-table td {
+            padding: 8px 12px;
+            color: var(--emerald-400);
+            border-bottom: 1px solid #1e293b;
+            border-right: 1px solid #1e293b;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+        .result-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
         .action-buttons {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
         .btn-action {
             flex: 1;
-            padding: 16px;
+            padding: 14px 10px;
             border-radius: 12px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             border: none;
             display: flex;
@@ -290,15 +323,23 @@
             align-items: center;
             cursor: pointer;
             transition: all 0.2s;
+            white-space: nowrap;
         }
         .btn-copy { background-color: #e2e8f0; color: var(--slate-800); }
         .btn-copy:active { background-color: #cbd5e1; }
+        
+        .btn-image {
+            background-color: var(--primary-blue); color: white;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.25);
+        }
+        .btn-image:active { transform: scale(0.96); background-color: var(--primary-blue-dark); }
+
         .btn-export {
             background-color: var(--emerald-500); color: white;
             box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
         }
         .btn-export:active { transform: scale(0.96); background-color: var(--emerald-600); }
-        .btn-action svg { width: 18px; height: 18px; margin-right: 8px; }
+        .btn-action svg { width: 17px; height: 17px; margin-right: 6px; flex-shrink: 0; }
 
         .app-footer {
             text-align: center;
@@ -390,7 +431,6 @@
                         <span id="stats" class="stats-badge"></span>
                     </div>
 
-                    <!-- Added Model-wise Search Input without removing anything -->
                     <div class="model-search-wrapper">
                         <input 
                             type="text" 
@@ -402,12 +442,21 @@
                         <button id="clearSearchBtn" class="clear-search-btn" onclick="clearModelSearch()">✕</button>
                     </div>
                     
-                    <div id="finalResult" class="result-box"></div>
+                    <div id="finalResult" class="result-box">
+                        <table id="resultTable" class="result-table">
+                            <thead id="tableHead"></thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
                     
                     <div class="action-buttons">
                         <button class="btn-action btn-copy" onclick="copyToClipboard()">
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                             Copy Text
+                        </button>
+                        <button class="btn-action btn-image" onclick="copyTableImage()">
+                            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            Copy Image
                         </button>
                         <button class="btn-action btn-export" onclick="exportToExcel()">
                             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -429,7 +478,7 @@
 
     <script>
         let globalRows = []; 
-        let displayRows = []; // Holds filtered or full rows
+        let displayRows = []; 
         let globalWorkbook = null; 
         const headers = ["CATEGORY", "BRAND", "MODEL", "MRP", "TOTAL TENURE", "ADVANCE EMI", "DBD", "CPF", "VALIDITY", "LOCATION"];
         let toastTimeout;
@@ -439,7 +488,7 @@
             toast.innerText = msg;
             toast.classList.add('show');
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => toast.classList.remove('show'), 2000);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
         }
 
         document.getElementById('excelFile').addEventListener('change', function(e) {
@@ -629,10 +678,18 @@
             }
         }
 
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
         function applyModelSearch() {
             const query = document.getElementById('modelSearch').value.trim().toUpperCase();
             const clearBtn = document.getElementById('clearSearchBtn');
-            const resultDiv = document.getElementById('finalResult');
+            const thead = document.getElementById('tableHead');
+            const tbody = document.getElementById('tableBody');
             const stats = document.getElementById('stats');
 
             clearBtn.style.display = query.length > 0 ? 'flex' : 'none';
@@ -647,8 +704,17 @@
                 });
             }
 
-            const previewText = headers.join('\t') + '\n' + displayRows.map(row => row.join('\t')).join('\n');
-            resultDiv.innerText = previewText;
+            // Render Headers in Table
+            thead.innerHTML = '<tr>' + headers.map(h => `<th>${escapeHtml(h)}</th>`).join('') + '</tr>';
+
+            // Render Rows in Table
+            if (displayRows.length > 0) {
+                tbody.innerHTML = displayRows.map(row => 
+                    '<tr>' + row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('') + '</tr>'
+                ).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="${headers.length}" style="text-align:center; padding: 24px; color: #94a3b8;">No matching models found</td></tr>`;
+            }
             
             stats.innerText = displayRows.length === globalRows.length 
                 ? `${globalRows.length} Rows` 
@@ -661,6 +727,7 @@
             document.getElementById('modelSearch').focus();
         }
 
+        // Exact Same Copy Text Function
         function copyToClipboard() {
             const rowsToCopy = displayRows.length > 0 ? displayRows : globalRows;
             const text = headers.join('\t') + '\n' + rowsToCopy.map(row => row.join('\t')).join('\n');
@@ -673,6 +740,82 @@
             showToast("Copied Data!");
         }
 
+        // NEW: Copy Processed Table as Image
+        async function copyTableImage() {
+            const rowsToCapture = displayRows.length > 0 ? displayRows : globalRows;
+            if (rowsToCapture.length === 0) {
+                showToast("No table data to capture!");
+                return;
+            }
+
+            if (rowsToCapture.length > 150) {
+                showToast("Please search/filter models first (Max 150 rows for crisp image)!");
+                return;
+            }
+
+            showToast("Generating Table Image...");
+
+            const tableEl = document.getElementById('resultTable');
+            
+            // Create off-screen clone so full scrollable table is captured cleanly
+            const wrapper = document.createElement('div');
+            wrapper.style.position = 'fixed';
+            wrapper.style.left = '-99999px';
+            wrapper.style.top = '0';
+            wrapper.style.backgroundColor = '#0f172a';
+            wrapper.style.padding = '16px';
+            wrapper.style.borderRadius = '12px';
+
+            const clonedTable = tableEl.cloneNode(true);
+            clonedTable.style.width = 'auto';
+            // Remove sticky position on clone headers for clean screenshot
+            clonedTable.querySelectorAll('th').forEach(th => th.style.position = 'static');
+            
+            wrapper.appendChild(clonedTable);
+            document.body.appendChild(wrapper);
+
+            try {
+                const canvas = await html2canvas(wrapper, {
+                    backgroundColor: '#0f172a',
+                    scale: 2
+                });
+
+                document.body.removeChild(wrapper);
+
+                canvas.toBlob(async function(blob) {
+                    if (!blob) {
+                        showToast("Failed to create image!");
+                        return;
+                    }
+                    try {
+                        if (navigator.clipboard && window.ClipboardItem) {
+                            await navigator.clipboard.write([
+                                new ClipboardItem({ 'image/png': blob })
+                            ]);
+                            showToast("Table Image Copied to Clipboard!");
+                        } else {
+                            throw new Error("Clipboard API unavailable");
+                        }
+                    } catch (err) {
+                        // Fallback: auto-download PNG if browser blocks clipboard image on local file://
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `Table_Snapshot_${new Date().getTime()}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        showToast("Image Downloaded (Clipboard blocked on local file)!");
+                    }
+                }, 'image/png');
+            } catch (e) {
+                if (document.body.contains(wrapper)) document.body.removeChild(wrapper);
+                showToast("Error capturing table image!");
+            }
+        }
+
+        // Exact Same Download Excel Function
         function exportToExcel() {
             const rowsToExport = displayRows.length > 0 ? displayRows : globalRows;
             if (rowsToExport.length === 0) return;
@@ -730,6 +873,8 @@
             
             globalRows = [];
             displayRows = [];
+            document.getElementById('tableHead').innerHTML = '';
+            document.getElementById('tableBody').innerHTML = '';
             showToast("Workspace Cleared");
         }
     </script>
